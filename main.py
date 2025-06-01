@@ -4,11 +4,11 @@ import os
 
 
 
-def main(folder_name, model_path, input_size_nr, run_number):
+def main(folder_name, model_path, input_size_nr, run_number, score_threshold, nms_threshold, top_k):
     input_size = (input_size_nr, input_size_nr)  # you can use (320,320), (640,640), etc.—tradeoff speed vs. accuracy
-    score_threshold = 0.5  # discard detections below 50% confidence
-    nms_threshold = 0.3  # IoU threshold for NMS
-    top_k = 1000  # keep up to 1000 highest-scoring boxes
+    score_threshold = score_threshold # discard detections below X confidence
+    nms_threshold = nms_threshold  # IoU threshold for NMS
+    top_k = top_k  # keep up to 1000 highest-scoring boxes
     detector = cv2.FaceDetectorYN_create(
         model=model_path,
         config="",  # YuNet has no extra config file
@@ -71,6 +71,13 @@ if __name__ == "__main__":
     folder_name = "dev-images/"
     model_path = "opencv_zoo/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
     input_size_nr_list = [320, 480, 640, 960, 1280, 1600, 1920, 2560]  # Different input sizes to test
+    score_threshold_list = [i/10 for i in range(1, 10)]  # Score thresholds from 0 to 100 in steps of 10
+    nms_threshold_list = [i/10 for i in range(1, 10)]
+    top_k_list = list(range(100, 1000, 100))
     run_number = 1
     for input_size_nr in input_size_nr_list:
-        main(folder_name=folder_name, model_path=model_path, input_size_nr=input_size_nr, run_number=run_number)
+        for score_threshold in score_threshold_list:
+            for nms_threshold in nms_threshold_list:
+                for top_k in top_k_list:
+                    print(f"Running with input_size={input_size_nr}, score_threshold={score_threshold}, nms_threshold={nms_threshold}")
+                    main(folder_name=folder_name, model_path=model_path, input_size_nr=input_size_nr, run_number=run_number, score_threshold=score_threshold, nms_threshold=nms_threshold, top_k=top_k)
